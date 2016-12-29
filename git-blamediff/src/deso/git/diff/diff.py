@@ -1,7 +1,7 @@
 # diff.py
 
 #/***************************************************************************
-# *   Copyright (C) 2015 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2015-2016 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -33,7 +33,12 @@ _WS_STRING = r"[ \t]*"
 _FILE_STRING = r"([^ \t]+)"
 _ADDSUB_STRING = r"([+\-])"
 _NUMLINE_STRING = r"({nr})".format(nr=_NUMS_STRING)
-_DIFF_DIFF_REGEX = regex(r"^[+\- ]")
+# Aside from '+' and '-' we have a "continuation" character ('\') in
+# here which essentially just indicates a line that is being ignored.
+# This character is used (in conjunction with the string "No newline at
+# end of file") to indicate that a newline symbol at the end of a file
+# is added or removed, for instance.
+_DIFF_DIFF_REGEX = regex(r"^[+\-\\ ]")
 _DIFF_NODIFF_REGEX = regex(r"^[^+\- ]")
 _DIFF_SRC_REGEX = regex(r"^---{ws}{f}".format(ws=_WS_STRING, f=_FILE_STRING))
 _DIFF_DST_REGEX = regex(r"^\+\+\+{ws}{f}".format(ws=_WS_STRING, f=_FILE_STRING))

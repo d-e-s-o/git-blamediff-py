@@ -1,7 +1,7 @@
 # testDiff.py
 
 #/***************************************************************************
-# *   Copyright (C) 2015 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2015-2016 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -64,6 +64,46 @@ class TestParser(TestCase):
     (src, dst), = self._parser.diffs
     self.assertEqual(src, DiffFile("main.c", add_sub="-", line=6, count=6))
     self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=6, count=6))
+
+
+  def testParseDiffAddingNewlineAtEndOfFile(self):
+    """Test that we can parse a diff emitted by git if a file's trailing newline is added."""
+    diff = dedent("""\
+      --- main.c
+      +++ main.c
+      @@ -8,4 +8,4 @@ int main(int argc, char const* argv[])
+         }
+         printf("Hello world!");
+         return 0;
+      -}
+      \\ No newline at end of file
+      +}\
+    """)
+    self._parser.parse(diff.splitlines())
+
+    (src, dst), = self._parser.diffs
+    self.assertEqual(src, DiffFile("main.c", add_sub="-", line=8, count=4))
+    self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=8, count=4))
+
+
+  def testParseDiffRemovingNewlineAtEndOfFile(self):
+    """Test that we can parse a diff emitted by git if a file's trailing newline is removed."""
+    diff = dedent("""\
+      --- main.c
+      +++ main.c
+      @@ -8,4 +8,4 @@ int main(int argc, char const* argv[])
+         }
+         printf("Hello world!");
+         return 0;
+      -}
+      +}
+      \\ No newline at end of file\
+    """)
+    self._parser.parse(diff.splitlines())
+
+    (src, dst), = self._parser.diffs
+    self.assertEqual(src, DiffFile("main.c", add_sub="-", line=8, count=4))
+    self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=8, count=4))
 
 
 if __name__ == "__main__":
