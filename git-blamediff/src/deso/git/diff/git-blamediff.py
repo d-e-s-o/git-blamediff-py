@@ -27,6 +27,7 @@ from subprocess import (
 )
 from sys import (
   stdin,
+  stdout,
 )
 
 
@@ -39,6 +40,9 @@ def blame(diffs):
     src, dst = diff
     print("--- %s" % src.file)
     print("+++ %s" % dst.file)
+    # Make sure stdout is flushed properly before invoking a git command
+    # to be sure our 'print' output arrives before that of git.
+    stdout.flush()
 
     # Invoke git with the appropriate options to annotate the lines of
     # the diff.
