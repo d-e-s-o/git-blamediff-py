@@ -1,7 +1,7 @@
 # __init__.py
 
 #/***************************************************************************
-# *   Copyright (C) 2015 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2015-2016 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -33,6 +33,7 @@ def allTests():
   # Explicitly load all tests by name and not using a single discovery
   # to be able to easily deselect parts.
   tests = [
+    "testGitBlameDiff.py",
     "testDiff.py",
   ]
 

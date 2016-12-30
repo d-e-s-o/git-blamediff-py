@@ -1,7 +1,7 @@
 # Makefile
 
 #/***************************************************************************
-# *   Copyright (C) 2015 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2015-2016 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -19,7 +19,8 @@
 
 
 .PHONY: test
+test: ROOT := $(shell pwd)/..
 test:
-	@PYTHONPATH="$(shell pwd)/src/:${PYTHONPATH}"\
+	@PYTHONPATH="$(ROOT)/cleanup/src:$(ROOT)/execute/src:$(ROOT)/git-repo/src:$(ROOT)/git-blamediff/src/:${PYTHONPATH}"\
 	 PYTHONDONTWRITEBYTECODE=1\
 		python -m unittest --verbose deso.git.diff.test.allTests
