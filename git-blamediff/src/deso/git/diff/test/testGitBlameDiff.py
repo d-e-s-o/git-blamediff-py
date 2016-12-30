@@ -64,14 +64,14 @@ class GitRepository(Repository):
 
 
   @Repository.autoChangeDir
-  def blamediff(self):
+  def blamediff(self, *args):
     """Invoke git-blamediff on the repository."""
     script = join(dirname(__file__), "..", "git-blamediff.py")
 
     env = {}
     PythonMixin.inheritEnv(env)
     out, _ = pipeline([
-        [GIT, "diff", "--relative", "--no-prefix"],
+        [GIT, "diff", "--relative", "--no-prefix"] + list(args),
         [executable, script],
       ],
       env=env, stdout=b"",
@@ -97,6 +97,27 @@ class TestGitBlameDiff(TestCase):
       expected = dedent("""\
         --- main.py
         +++ main.py
+        %s 1) # main.py
+      """ % sha1[:-1].decode())
+
+      self.assertEqual(out.decode(), expected)
+
+
+  def testBlameRemovedFile(self):
+    """Check that git-blamediff works properly on a removed file."""
+    with GitRepository() as repo:
+      repo.commit("--allow-empty")
+
+      write(repo, "main.py", data="# main.py")
+      repo.add("main.py")
+      repo.commit()
+      repo.rm("main.py")
+
+      sha1, _ = repo.revParse("--short=%d" % GIT_SHA1_DIGITS, "HEAD", stdout=b"")
+      out = repo.blamediff("--staged")
+      expected = dedent("""\
+        --- main.py
+        +++ /dev/null
         %s 1) # main.py
       """ % sha1[:-1].decode())
 

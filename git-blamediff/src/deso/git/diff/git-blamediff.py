@@ -48,7 +48,7 @@ def blame(diffs):
     # the diff.
     # TODO: Make the arguments here more configurable. In fact, we
     #       should not hard-code any of them here.
-    cmd = "/usr/bin/git --no-pager blame -s -L{l},+{c} {f} HEAD"
+    cmd = "/usr/bin/git --no-pager blame -s -L{l},+{c} -- {f} HEAD"
     cmd = cmd.format(l=src.line, c=src.count, f=src.file)
 
     call(cmd.split())
