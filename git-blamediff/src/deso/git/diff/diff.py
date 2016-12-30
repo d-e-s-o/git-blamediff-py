@@ -183,8 +183,12 @@ class Parser:
   def parse(self, lines):
     """Parse the given diff and extract the relevant information."""
     for line in lines:
-      # Remove trailing new line symbols, we already expect lines.
-      self._state.parse(line[:-1] if line[-1] == "\n" else line)
+      # We simply ignore any empty lines and do not even hand them into
+      # the state for further consideration because they cannot change
+      # anything.
+      if len(line) > 0:
+        # Remove trailing new line symbols, we already expect lines.
+        self._state.parse(line[:-1] if line[-1] == "\n" else line)
 
 
   def advance(self, state):

@@ -136,5 +136,26 @@ class TestParser(TestCase):
     self.assertEqual(dst, DiffFile("/dev/null", add_sub="+", line=0, count=0))
 
 
+  def testParseDiffWithEmptyLine(self):
+    """Verify that we can parse a diff containing an empty line."""
+    diff = dedent("""\
+      --- main.c
+      +++ main.c
+      @@ -1,6 +1,6 @@
+       #include <stdio.h>
+       
+      -int main(int argc, char const* argv[])
+      +int main(int argc, char* argv[])
+       {
+         if (argc > 1) {
+           fprintf(stderr, "Too many arguments.\\n");\
+      """)
+    self._parser.parse(diff.splitlines())
+
+    (src, dst), = self._parser.diffs
+    self.assertEqual(src, DiffFile("main.c", add_sub="-", line=1, count=6))
+    self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=1, count=6))
+
+
 if __name__ == "__main__":
   main()
