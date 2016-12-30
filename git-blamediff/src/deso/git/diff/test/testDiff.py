@@ -106,5 +106,35 @@ class TestParser(TestCase):
     self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=8, count=4))
 
 
+  def testParseDiffWithAddedFileWithSingleLine(self):
+    """Test that we can parse a diff adding a file with a single line."""
+    diff = dedent("""\
+      --- /dev/null
+      +++ main.c
+      @@ -0,0 +1 @@
+      +main.c\
+    """)
+    self._parser.parse(diff.splitlines())
+
+    (src, dst), = self._parser.diffs
+    self.assertEqual(src, DiffFile("/dev/null", add_sub="-", line=0, count=0))
+    self.assertEqual(dst, DiffFile("main.c", add_sub="+", line=1, count=1))
+
+
+  def testParseDiffWithRemovedFileWithSingleLine(self):
+    """Test that we can parse a diff removing a file with a single line."""
+    diff = dedent("""\
+      --- main.c
+      +++ /dev/null
+      @@ -1 +0,0 @@
+      -main.c\
+    """)
+    self._parser.parse(diff.splitlines())
+
+    (src, dst), = self._parser.diffs
+    self.assertEqual(src, DiffFile("main.c", add_sub="-", line=1, count=1))
+    self.assertEqual(dst, DiffFile("/dev/null", add_sub="+", line=0, count=0))
+
+
 if __name__ == "__main__":
   main()

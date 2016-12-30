@@ -42,11 +42,9 @@ _DIFF_DIFF_REGEX = regex(r"^[+\-\\ ]")
 _DIFF_NODIFF_REGEX = regex(r"^[^+\- ]")
 _DIFF_SRC_REGEX = regex(r"^---{ws}{f}".format(ws=_WS_STRING, f=_FILE_STRING))
 _DIFF_DST_REGEX = regex(r"^\+\+\+{ws}{f}".format(ws=_WS_STRING, f=_FILE_STRING))
-# TODO: Not every valid header has to look like this. If it starts at
-#       the beginning of the file or ends at the end it might look
-#       different, at least in general for unified diffs, I suppose. We
-#       need tests for all cases.
-_DIFF_HEAD_LINE = r"^@@ {a}{nl},{nl} {a}{nl},{nl} @@"
+# Note that in case a new file containing a single line is added the
+# diff header might not contain the second count.
+_DIFF_HEAD_LINE = r"^@@ {a}{nl}(?:,{nl})? {a}{nl}(?:,{nl})? @@"
 _DIFF_HEAD_REGEX = regex(_DIFF_HEAD_LINE.format(a=_ADDSUB_STRING,
                                                 nl=_NUMLINE_STRING))
 
@@ -119,8 +117,10 @@ def parseHead(state, line):
   """Try parsing a line containg information about the changed lines."""
   m = _DIFF_HEAD_REGEX.match(line)
   if m is not None:
+    # Because a diff header might not contain counts if only a single
+    # line is affected, we supply the default "1" to the groups method.
     add_src, start_src, count_src,\
-    add_dst, start_dst, count_dst = m.groups()
+    add_dst, start_dst, count_dst = m.groups(default="1")
 
     src = DiffFile(state.src, add_src, int(start_src), int(count_src))
     dst = DiffFile(state.dst, add_dst, int(start_dst), int(count_dst))
