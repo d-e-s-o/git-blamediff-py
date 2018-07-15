@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #/***************************************************************************
-# *   Copyright (C) 2015 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2015,2018 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -26,12 +26,13 @@ from subprocess import (
   call,
 )
 from sys import (
+  argv,
   stdin,
   stdout,
 )
 
 
-def blame(diffs):
+def blame(diffs, args=None):
   """Invoke git to annotate all the diff hunks."""
   for diff in diffs:
     # Start off by printing some information on the file we are
@@ -48,20 +49,20 @@ def blame(diffs):
     # the diff.
     # TODO: Make the arguments here more configurable. In fact, we
     #       should not hard-code any of them here.
-    cmd = "/usr/bin/git --no-pager blame -s -L{l},+{c} -- {f} HEAD"
-    cmd = cmd.format(l=src.line, c=src.count, f=src.file)
+    cmd = "/usr/bin/git --no-pager blame -s -L{l},+{c} {args} -- {f} HEAD"
+    cmd = cmd.format(l=src.line, c=src.count, args=" ".join(args), f=src.file)
 
     call(cmd.split())
 
 
-def main():
+def main(args):
   """Parse the diff from stdin and invoke git blame on each hunk."""
   parser = Parser()
   parser.parse(stdin.readlines())
 
-  blame(parser.diffs)
+  blame(parser.diffs, args)
   return 0
 
 
 if __name__ == "__main__":
-  exit(main())
+  exit(main(argv[1:]))

@@ -1,7 +1,7 @@
 # testGitBlameDiff.py
 
 #/***************************************************************************
-# *   Copyright (C) 2016 Daniel Mueller (deso@posteo.net)                   *
+# *   Copyright (C) 2016,2018 Daniel Mueller (deso@posteo.net)              *
 # *                                                                         *
 # *   This program is free software: you can redistribute it and/or modify  *
 # *   it under the terms of the GNU General Public License as published by  *
@@ -64,15 +64,18 @@ class GitRepository(Repository):
 
 
   @Repository.autoChangeDir
-  def blamediff(self, *args):
+  def blamediff(self, diff_args=None, blame_args=None):
     """Invoke git-blamediff on the repository."""
+    diff_args = [] if diff_args is None else diff_args
+    blame_args = [] if blame_args is None else blame_args
+
     script = join(dirname(__file__), "..", "git-blamediff.py")
 
     env = {}
     PythonMixin.inheritEnv(env)
     out, _ = pipeline([
-        [GIT, "diff", "--relative", "--no-prefix"] + list(args),
-        [executable, script],
+        [GIT, "diff", "--relative", "--no-prefix"] + diff_args,
+        [executable, script] + blame_args,
       ],
       env=env, stdout=b"",
     )
@@ -114,10 +117,33 @@ class TestGitBlameDiff(TestCase):
       repo.rm("main.py")
 
       sha1, _ = repo.revParse("--short=%d" % GIT_SHA1_DIGITS, "HEAD", stdout=b"")
-      out = repo.blamediff("--staged")
+      out = repo.blamediff(diff_args=["--staged"])
       expected = dedent("""\
         --- main.py
         +++ /dev/null
+        %s 1) # main.py
+      """ % sha1[:-1].decode())
+
+      self.assertEqual(out.decode(), expected)
+
+
+  def testBlameWithAdditionalArguments(self):
+    """Verify that we can pass additional arguments to git-blame."""
+    with GitRepository() as repo:
+      repo.commit("--allow-empty")
+
+      write(repo, "main.py", data="# main.py")
+      repo.add("main.py")
+      repo.commit()
+
+      write(repo, "main.py", data="# main.py\n# Hello, World!")
+      sha1, _ = repo.revParse("HEAD", stdout=b"")
+      # Tell git-blame to use the long format for SHA-1 checksums.
+      out = repo.blamediff(blame_args=["-l"])
+
+      expected = dedent("""\
+        --- main.py
+        +++ main.py
         %s 1) # main.py
       """ % sha1[:-1].decode())
 
